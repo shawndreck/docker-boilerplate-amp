@@ -1,0 +1,52 @@
+version: "3"
+services:
+  # APP
+  app:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+      args:
+        user: shawndreck
+        uid: 1000
+    container_name: sapp
+    restart: unless-stopped
+    volumes:
+      - ./:/var/www/html/
+    networks:
+      - backend
+  # SERVER
+  httpd:
+    build: './docker-compose/httpd/'
+    container_name: shttpd
+    restart: unless-stopped
+    depends_on:
+      - app
+      - mysql
+    networks:
+      - frontend
+      - backend
+    ports:
+      - "8080:80"
+    volumes:
+      - ./:/var/www/html/
+  # DATABASE
+  mysql:
+    image: mysql:5.7
+    container_name: smysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+    restart: unless-stopped
+    networks:
+      - backend
+    ports:
+      - "3306:3306"
+    #Uncomment below if you want to view actual database files
+    #volumes:
+    #  - ./docker-compose/db_data/:/var/lib/mysql
+    
+networks:
+  frontend:
+  backend:
